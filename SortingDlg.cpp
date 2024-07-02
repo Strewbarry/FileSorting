@@ -219,8 +219,6 @@ void CSortingDlg::OnBnClickedButtSelect()
 			// folder 일 경우는 continue
 			// if (finder.IsDirectory()) continue;
 
-			// 파일 일때
-
 			//파일의 이름
 			CString _fileName = finder.GetFileName();
 
@@ -229,10 +227,6 @@ void CSortingDlg::OnBnClickedButtSelect()
 
 			fileName = finder.GetFileTitle();
 			m_ListBox1.AddString(fileName);
-			 
-
-			/*debugMsg.Format(_T("fileName : %s\n"), _fileName);
-			OutputDebugString(debugMsg);*/
 		}
 	}
 }
@@ -241,5 +235,52 @@ void CSortingDlg::OnBnClickedButtSelect()
 void CSortingDlg::OnBnClickedButtSort()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	UpdateData(false);
 
+	CFileFind finder;
+	CString exe = _T("/*.*");
+	BOOL bWorking = finder.FindFile(m_DrectPath + exe);
+
+	CString fileName;
+	CString DirName;
+	CString DirList[100];
+	int ListCount = 0;
+
+	while (bWorking)
+	{
+		bWorking = finder.FindNextFile();
+
+		CString _fileName = finder.GetFileName();
+
+		// 현재폴더 상위폴더 썸네일파일은 제외
+		if (_fileName == _T("Thumbs.db")) continue;
+
+		fileName = finder.GetFileTitle();
+		DirList[ListCount] = fileName;
+		ListCount++;
+		/*debugMsg.Format(_T("fileName : %s\n"), _fileName);
+		OutputDebugString(debugMsg);*/
+	}
+
+	for (int i = 0; i < ListCount; i++)
+	{
+		if (DirList[i].GetLength() < 5) continue;
+		DirName = DirList[i];
+
+		debugMsg.Format(_T("DirName : %s\n\n"), DirName);
+		OutputDebugString(debugMsg);
+
+		BOOL bWorking2 = finder.FindFile(m_DrectPath + '/' + DirName + exe);
+		while (bWorking2) {
+			bWorking2 = finder.FindNextFile();
+
+			CString _fileName2 = finder.GetFileName();
+
+			if (_fileName2 == _T("Thumbs.db")) continue;
+
+			debugMsg.Format(_T("fileName : %s\n"), _fileName2);
+			OutputDebugString(debugMsg);
+		}
+	}
+	
 }
