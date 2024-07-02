@@ -239,6 +239,10 @@ void CSortingDlg::OnBnClickedButtSort()
 
 	CFileFind finder;
 	CString exe = _T("/*.*");
+	BOOL dWorking = finder.FindFile(m_DrectPath + '/' + _T("original"));
+	CreateDirectory(m_DrectPath + '/' + _T("original"), NULL);
+	CreateDirectory(m_DrectPath + '/' + _T("overlay"), NULL);
+
 	BOOL bWorking = finder.FindFile(m_DrectPath + exe);
 
 	CString fileName;
@@ -248,9 +252,11 @@ void CSortingDlg::OnBnClickedButtSort()
 
 	while (bWorking)
 	{
+
 		bWorking = finder.FindNextFile();
 
 		CString _fileName = finder.GetFileName();
+		if (_fileName.GetLength() < 5) continue;
 
 		// 현재폴더 상위폴더 썸네일파일은 제외
 		if (_fileName == _T("Thumbs.db")) continue;
@@ -258,13 +264,12 @@ void CSortingDlg::OnBnClickedButtSort()
 		fileName = finder.GetFileTitle();
 		DirList[ListCount] = fileName;
 		ListCount++;
-		/*debugMsg.Format(_T("fileName : %s\n"), _fileName);
-		OutputDebugString(debugMsg);*/
+
 	}
 
 	for (int i = 0; i < ListCount; i++)
 	{
-		if (DirList[i].GetLength() < 5) continue;
+		if (DirList[i].GetLength() < 10) continue;
 		DirName = DirList[i];
 
 		debugMsg.Format(_T("DirName : %s\n\n"), DirName);
@@ -273,14 +278,15 @@ void CSortingDlg::OnBnClickedButtSort()
 		BOOL bWorking2 = finder.FindFile(m_DrectPath + '/' + DirName + exe);
 		while (bWorking2) {
 			bWorking2 = finder.FindNextFile();
-
 			CString _fileName2 = finder.GetFileName();
 
+			if (_fileName2.GetLength() < 5) continue;
 			if (_fileName2 == _T("Thumbs.db")) continue;
+
 
 			debugMsg.Format(_T("fileName : %s\n"), _fileName2);
 			OutputDebugString(debugMsg);
 		}
 	}
-	
+	//MessageBox(_T("success!!"), _T("alert"), NULL);
 }
