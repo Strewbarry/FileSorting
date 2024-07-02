@@ -239,6 +239,7 @@ void CSortingDlg::OnBnClickedButtSort()
 
 	CFileFind finder;
 	CString exe = _T("/*.*");
+
 	BOOL dWorking = finder.FindFile(m_DrectPath + '/' + _T("original"));
 	CreateDirectory(m_DrectPath + '/' + _T("original"), NULL);
 	CreateDirectory(m_DrectPath + '/' + _T("overlay"), NULL);
@@ -279,12 +280,35 @@ void CSortingDlg::OnBnClickedButtSort()
 		while (bWorking2) {
 			bWorking2 = finder.FindNextFile();
 			CString _fileName2 = finder.GetFileName();
+			CString overlay;
 
 			if (_fileName2.GetLength() < 5) continue;
 			if (_fileName2 == _T("Thumbs.db")) continue;
 
+			CString View, Sub, ViewV, ViewN, SubS, SubN;
+			CString Ov;
 
-			debugMsg.Format(_T("fileName : %s\n"), _fileName2);
+			AfxExtractSubString(View, _fileName2, 0, '_');
+			AfxExtractSubString(Sub, _fileName2, 1, '_');
+			AfxExtractSubString(Ov, _fileName2, 4, '_');
+			AfxExtractSubString(Ov, Ov, 0, '.');
+
+			ViewV = View[0];
+			ViewN = View[7];
+			SubS = Sub[0];
+			SubN = Sub[6];
+
+			if (Ov == "Overlay")
+				overlay = _T("overlay");
+			else
+				overlay = _T("original");
+
+			CString vsPath = m_DrectPath + '/' + overlay + '/' + ViewV + ViewN + SubS + SubN;
+			CreateDirectory(vsPath, NULL);
+
+
+
+			debugMsg.Format(_T("ViewN : %s\n"), ViewN);
 			OutputDebugString(debugMsg);
 		}
 	}
