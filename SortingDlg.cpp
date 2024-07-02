@@ -229,6 +229,7 @@ void CSortingDlg::OnBnClickedButtSelect()
 
 			fileName = finder.GetFileTitle();
 			m_ListBox1.AddString(fileName);
+			 
 
 			/*debugMsg.Format(_T("fileName : %s\n"), _fileName);
 			OutputDebugString(debugMsg);*/
