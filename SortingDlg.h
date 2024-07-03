@@ -38,4 +38,6 @@ public:
 	CListBox m_ListBox1;
 	CString debugMsg;
 	afx_msg void OnBnClickedButtSort();
+	BOOL PreTranslateMessage(MSG * pMsg);
+	CString strInitPath;
 };

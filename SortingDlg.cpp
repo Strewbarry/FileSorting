@@ -53,6 +53,7 @@ CSortingDlg::CSortingDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_SORTING_DIALOG, pParent)
 	, m_DrectPath(_T(""))
 	, debugMsg(_T(""))
+	, strInitPath(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -105,6 +106,7 @@ BOOL CSortingDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	strInitPath = _T("C:\\");
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -190,24 +192,22 @@ void CSortingDlg::OnBnClickedButtSelect()
 
 	// 사용자정의 함수에 넘겨질 인자로 사용자가 설정하고자 하는 경로를 설정한다.
 	// 예를들어 초기폴더경로를 C드라이브로 설정하는 경우
-	CString strInitPath = _T("C:\\");
-	BrInfo.lParam = (LPARAM)strInitPath.GetBuffer();
 
-	pidlBrowse = ::SHBrowseForFolder(&BrInfo);
-
-
-	if (pidlBrowse != NULL)
+	CFolderPickerDialog Picker(strInitPath, OFN_FILEMUSTEXIST, NULL, 0);
+	if (Picker.DoModal() == IDOK)
 	{
+		m_ListBox1.ResetContent();
 		// 선택된 폴더 경로얻음
-		SHGetPathFromIDList(pidlBrowse, pszPathname);
+		CString pszPathname = Picker.GetPathName();
 
-		// 경로(pszPathname)를 이용하여 이후작업 추가
+		// 경로(strFolderPath)를 이용하여 이후작업 추가
 		m_DrectPath = pszPathname;
+		strInitPath = pszPathname;
 		UpdateData(false);
 
 		CFileFind finder;
 		CString exe = _T("/*.*");
-		BOOL bWorking = finder.FindFile(pszPathname+ exe);
+		BOOL bWorking = finder.FindFile(pszPathname + exe);
 
 		CString fileName;
 		CString DirName;
@@ -215,7 +215,7 @@ void CSortingDlg::OnBnClickedButtSelect()
 		while (bWorking)
 		{
 			bWorking = finder.FindNextFile();
-			
+
 			// folder 일 경우는 continue
 			// if (finder.IsDirectory()) continue;
 
@@ -223,6 +223,7 @@ void CSortingDlg::OnBnClickedButtSelect()
 			CString _fileName = finder.GetFileName();
 
 			// 현재폴더 상위폴더 썸네일파일은 제외
+			if (_fileName.GetLength() < 10) continue;
 			if (_fileName == _T("Thumbs.db")) continue;
 
 			fileName = finder.GetFileTitle();
@@ -241,9 +242,13 @@ void CSortingDlg::OnBnClickedButtSort()
 	CFileFind dicfinder;
 	CString exe = _T("/*.*");
 
-	//BOOL dWorking = finder.FindFile(m_DrectPath + '/' + _T("original"));
-	CreateDirectory(m_DrectPath + '/' + _T("original"), NULL);
-	CreateDirectory(m_DrectPath + '/' + _T("overlay"), NULL);
+	BOOL dWorking = finder.FindFile(m_DrectPath + '/' + _T("original"));
+	if (!dWorking)
+		CreateDirectory(m_DrectPath + '/' + _T("original"), NULL);
+
+	dWorking = finder.FindFile(m_DrectPath + '/' + _T("overlay"));
+	if (!dWorking)
+		CreateDirectory(m_DrectPath + '/' + _T("overlay"), NULL);
 
 	BOOL bWorking = finder.FindFile(m_DrectPath + exe);
 
@@ -254,19 +259,17 @@ void CSortingDlg::OnBnClickedButtSort()
 
 	while (bWorking)
 	{
-
 		bWorking = finder.FindNextFile();
 
 		CString _fileName = finder.GetFileName();
 		if (_fileName.GetLength() < 10) continue;
+		if (_fileName == _T("Thumbs.db")) continue;
 
 		// 현재폴더 상위폴더 썸네일파일은 제외
-		if (_fileName == _T("Thumbs.db")) continue;
 
 		fileName = finder.GetFileTitle();
 		DirList[ListCount] = fileName;
 		ListCount++;
-
 	}
 
 	for (int i = 0; i < ListCount; i++)
@@ -330,4 +333,15 @@ void CSortingDlg::OnBnClickedButtSort()
 		}
 	}
 	MessageBox(_T("success!!"), _T("alert"), NULL);
+}
+
+BOOL CSortingDlg::PreTranslateMessage(MSG* pMsg)
+{
+	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+	if (pMsg->message == WM_KEYDOWN)
+	{
+		OnKeyDown((UINT)pMsg->wParam, 1, (UINT)pMsg->lParam);
+		return TRUE;
+	}
+	return CDialogEx::PreTranslateMessage(pMsg);
 }
