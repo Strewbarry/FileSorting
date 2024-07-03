@@ -171,6 +171,38 @@ int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpDa
 	return 0;
 }
 
+bool CSortingDlg::FileListUp(CString pszPathname) {
+	m_ListBox1.ResetContent();
+	CFileFind finder;
+	CString exe = _T("/*.*");
+	BOOL bWorking = finder.FindFile(pszPathname + exe);
+	if (!bWorking) {
+		MessageBox(_T("올바르지 않은 경로입니다!!"), _T("alert"), NULL);
+		return false;
+	}
+	strInitPath = pszPathname;
+	CString fileName;
+
+	while (bWorking)
+	{
+		bWorking = finder.FindNextFile();
+
+		// folder 일 경우는 continue
+		// if (finder.IsDirectory()) continue;
+
+		//파일의 이름
+		CString _fileName = finder.GetFileName();
+
+		// 현재폴더 상위폴더 썸네일파일은 제외
+		//if (_fileName.GetLength() < 10) continue;
+		if (_fileName == _T("Thumbs.db")) continue;
+
+		fileName = finder.GetFileTitle();
+		m_ListBox1.AddString(fileName);
+	}
+	return true;
+}
+
 void CSortingDlg::OnBnClickedButtSelect()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
@@ -196,7 +228,6 @@ void CSortingDlg::OnBnClickedButtSelect()
 	CFolderPickerDialog Picker(strInitPath, OFN_FILEMUSTEXIST, NULL, 0);
 	if (Picker.DoModal() == IDOK)
 	{
-		m_ListBox1.ResetContent();
 		// 선택된 폴더 경로얻음
 		CString pszPathname = Picker.GetPathName();
 
@@ -204,31 +235,7 @@ void CSortingDlg::OnBnClickedButtSelect()
 		m_DrectPath = pszPathname;
 		strInitPath = pszPathname;
 		UpdateData(false);
-
-		CFileFind finder;
-		CString exe = _T("/*.*");
-		BOOL bWorking = finder.FindFile(pszPathname + exe);
-
-		CString fileName;
-		CString DirName;
-
-		while (bWorking)
-		{
-			bWorking = finder.FindNextFile();
-
-			// folder 일 경우는 continue
-			// if (finder.IsDirectory()) continue;
-
-			//파일의 이름
-			CString _fileName = finder.GetFileName();
-
-			// 현재폴더 상위폴더 썸네일파일은 제외
-			if (_fileName.GetLength() < 10) continue;
-			if (_fileName == _T("Thumbs.db")) continue;
-
-			fileName = finder.GetFileTitle();
-			m_ListBox1.AddString(fileName);
-		}
+		FileListUp(pszPathname);
 	}
 }
 
@@ -242,13 +249,8 @@ void CSortingDlg::OnBnClickedButtSort()
 	CFileFind dicfinder;
 	CString exe = _T("/*.*");
 
-	BOOL dWorking = finder.FindFile(m_DrectPath + '/' + _T("original"));
-	if (!dWorking)
-		CreateDirectory(m_DrectPath + '/' + _T("original"), NULL);
-
-	dWorking = finder.FindFile(m_DrectPath + '/' + _T("overlay"));
-	if (!dWorking)
-		CreateDirectory(m_DrectPath + '/' + _T("overlay"), NULL);
+	CreateDirectory(m_DrectPath + '/' + _T("original"), NULL);
+	CreateDirectory(m_DrectPath + '/' + _T("overlay"), NULL);
 
 	BOOL bWorking = finder.FindFile(m_DrectPath + exe);
 
@@ -262,7 +264,7 @@ void CSortingDlg::OnBnClickedButtSort()
 		bWorking = finder.FindNextFile();
 
 		CString _fileName = finder.GetFileName();
-		if (_fileName.GetLength() < 10) continue;
+		//if (_fileName.GetLength() < 10) continue;
 		if (_fileName == _T("Thumbs.db")) continue;
 
 		// 현재폴더 상위폴더 썸네일파일은 제외
@@ -272,9 +274,9 @@ void CSortingDlg::OnBnClickedButtSort()
 		ListCount++;
 	}
 
+
 	for (int i = 0; i < ListCount; i++)
 	{
-		if (DirList[i].GetLength() < 10) continue;
 		DirName = DirList[i];
 
 		/*debugMsg.Format(_T("DirName : %s\n\n"), DirName);
@@ -340,8 +342,16 @@ BOOL CSortingDlg::PreTranslateMessage(MSG* pMsg)
 	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
 	if (pMsg->message == WM_KEYDOWN)
 	{
-		OnKeyDown((UINT)pMsg->wParam, 1, (UINT)pMsg->lParam);
-		return TRUE;
+		if (pMsg->wParam == VK_ESCAPE)
+		{
+			return TRUE; 
+		}
+		if (pMsg->wParam == VK_RETURN)
+		{
+			UpdateData(true);
+			FileListUp(m_DrectPath);
+			return TRUE;
+		}
 	}
 	return CDialogEx::PreTranslateMessage(pMsg);
 }

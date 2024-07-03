@@ -33,7 +33,9 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnBnClickedButtSelect();
+	afx_msg
+	bool FileListUp(CString pszPathname);
+	void OnBnClickedButtSelect();
 	CString m_DrectPath;
 	CListBox m_ListBox1;
 	CString debugMsg;
