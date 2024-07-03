@@ -238,9 +238,10 @@ void CSortingDlg::OnBnClickedButtSort()
 	UpdateData(false);
 
 	CFileFind finder;
+	CFileFind dicfinder;
 	CString exe = _T("/*.*");
 
-	BOOL dWorking = finder.FindFile(m_DrectPath + '/' + _T("original"));
+	//BOOL dWorking = finder.FindFile(m_DrectPath + '/' + _T("original"));
 	CreateDirectory(m_DrectPath + '/' + _T("original"), NULL);
 	CreateDirectory(m_DrectPath + '/' + _T("overlay"), NULL);
 
@@ -257,7 +258,7 @@ void CSortingDlg::OnBnClickedButtSort()
 		bWorking = finder.FindNextFile();
 
 		CString _fileName = finder.GetFileName();
-		if (_fileName.GetLength() < 5) continue;
+		if (_fileName.GetLength() < 10) continue;
 
 		// 현재폴더 상위폴더 썸네일파일은 제외
 		if (_fileName == _T("Thumbs.db")) continue;
@@ -273,8 +274,8 @@ void CSortingDlg::OnBnClickedButtSort()
 		if (DirList[i].GetLength() < 10) continue;
 		DirName = DirList[i];
 
-		debugMsg.Format(_T("DirName : %s\n\n"), DirName);
-		OutputDebugString(debugMsg);
+		/*debugMsg.Format(_T("DirName : %s\n\n"), DirName);
+		OutputDebugString(debugMsg);*/
 
 		BOOL bWorking2 = finder.FindFile(m_DrectPath + '/' + DirName + exe);
 		while (bWorking2) {
@@ -293,7 +294,7 @@ void CSortingDlg::OnBnClickedButtSort()
 			AfxExtractSubString(Ov, _fileName2, 4, '_');
 			AfxExtractSubString(Ov, Ov, 0, '.');
 
-			ViewV = View[0];
+			ViewV = View[0];      
 			ViewN = View[7];
 			SubS = Sub[0];
 			SubN = Sub[6];
@@ -304,13 +305,29 @@ void CSortingDlg::OnBnClickedButtSort()
 				overlay = _T("original");
 
 			CString vsPath = m_DrectPath + '/' + overlay + '/' + ViewV + ViewN + SubS + SubN;
-			CreateDirectory(vsPath, NULL);
 
 
+			BOOL bWorking3 = dicfinder.FindFile(vsPath);
+			if (!bWorking3)
+				CreateDirectory(vsPath, NULL);
+			CString FName, Extension, FnameM, index, FnameO;
 
-			debugMsg.Format(_T("ViewN : %s\n"), ViewN);
+			AfxExtractSubString(FName, _fileName2, 0, '.');
+			AfxExtractSubString(Extension, _fileName2, 1, '.');
+			index.Format(_T("%d"), i);
+
+			CString Redirection;
+
+			FnameO = m_DrectPath + '/' + DirName + '/' + _fileName2;
+			FnameM = m_DrectPath + '/' + overlay + '/' + ViewV + ViewN + SubS + SubN + '/' + FName + "_(" + index + ")." + Extension;
+
+			CopyFile(FnameO, FnameM, NULL);
+
+			debugMsg.Format(_T("FnameO : %s\n"), FnameO);
+			OutputDebugString(debugMsg);
+			debugMsg.Format(_T("FnameM : %s\n"), FnameM);
 			OutputDebugString(debugMsg);
 		}
 	}
-	//MessageBox(_T("success!!"), _T("alert"), NULL);
+	MessageBox(_T("success!!"), _T("alert"), NULL);
 }
