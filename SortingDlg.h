@@ -42,4 +42,5 @@ public:
 	afx_msg void OnBnClickedButtSort();
 	BOOL PreTranslateMessage(MSG * pMsg);
 	CString strInitPath;
+	bool fileready;
 };

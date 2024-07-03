@@ -54,6 +54,7 @@ CSortingDlg::CSortingDlg(CWnd* pParent /*=NULL*/)
 	, m_DrectPath(_T(""))
 	, debugMsg(_T(""))
 	, strInitPath(_T(""))
+	, fileready(false)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -187,15 +188,12 @@ bool CSortingDlg::FileListUp(CString pszPathname) {
 	{
 		bWorking = finder.FindNextFile();
 
-		// folder 일 경우는 continue
-		// if (finder.IsDirectory()) continue;
-
 		//파일의 이름
 		CString _fileName = finder.GetFileName();
 
 		// 현재폴더 상위폴더 썸네일파일은 제외
-		//if (_fileName.GetLength() < 10) continue;
-		if (_fileName == _T("Thumbs.db")) continue;
+		if (_fileName==_T(".")) continue;
+		if (_fileName == _T("..")) continue;
 
 		fileName = finder.GetFileTitle();
 		m_ListBox1.AddString(fileName);
@@ -243,98 +241,96 @@ void CSortingDlg::OnBnClickedButtSelect()
 void CSortingDlg::OnBnClickedButtSort()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	UpdateData(false);
-
-	CFileFind finder;
-	CFileFind dicfinder;
-	CString exe = _T("/*.*");
-
-	CreateDirectory(m_DrectPath + '/' + _T("original"), NULL);
-	CreateDirectory(m_DrectPath + '/' + _T("overlay"), NULL);
-
-	BOOL bWorking = finder.FindFile(m_DrectPath + exe);
-
-	CString fileName;
-	CString DirName;
-	CString DirList[100];
-	int ListCount = 0;
-
-	while (bWorking)
-	{
-		bWorking = finder.FindNextFile();
-
-		CString _fileName = finder.GetFileName();
-		//if (_fileName.GetLength() < 10) continue;
-		if (_fileName == _T("Thumbs.db")) continue;
-
-		// 현재폴더 상위폴더 썸네일파일은 제외
-
-		fileName = finder.GetFileTitle();
-		DirList[ListCount] = fileName;
-		ListCount++;
+	if (fileready) {
+		MessageBox(_T("폴더를 선택하세요"), _T("alert"), NULL);
 	}
+	else {
 
+		UpdateData(false);
 
-	for (int i = 0; i < ListCount; i++)
-	{
-		DirName = DirList[i];
+		CFileFind finder;
+		CFileFind dicfinder;
+		CString exe = _T("/*.*");
 
-		/*debugMsg.Format(_T("DirName : %s\n\n"), DirName);
-		OutputDebugString(debugMsg);*/
+		CreateDirectory(m_DrectPath + '/' + _T("original"), NULL);
+		CreateDirectory(m_DrectPath + '/' + _T("overlay"), NULL);
 
-		BOOL bWorking2 = finder.FindFile(m_DrectPath + '/' + DirName + exe);
-		while (bWorking2) {
-			bWorking2 = finder.FindNextFile();
-			CString _fileName2 = finder.GetFileName();
-			CString overlay;
+		BOOL bWorking = finder.FindFile(m_DrectPath + exe);
 
-			if (_fileName2.GetLength() < 5) continue;
-			if (_fileName2 == _T("Thumbs.db")) continue;
+		CString fileName;
+		CString DirName;
+		CString DirList[100];
+		int ListCount = 0;
 
-			CString View, Sub, ViewV, ViewN, SubS, SubN;
-			CString Ov;
+		while (bWorking)
+		{
+			bWorking = finder.FindNextFile();
 
-			AfxExtractSubString(View, _fileName2, 0, '_');
-			AfxExtractSubString(Sub, _fileName2, 1, '_');
-			AfxExtractSubString(Ov, _fileName2, 4, '_');
-			AfxExtractSubString(Ov, Ov, 0, '.');
+			CString _fileName = finder.GetFileName();
 
-			ViewV = View[0];      
-			ViewN = View[7];
-			SubS = Sub[0];
-			SubN = Sub[6];
+			// 현재폴더 상위폴더 썸네일파일은 제외
+			if (_fileName == _T(".")) continue;
+			if (_fileName == _T("..")) continue;
 
-			if (Ov == "Overlay")
-				overlay = _T("overlay");
-			else
-				overlay = _T("original");
-
-			CString vsPath = m_DrectPath + '/' + overlay + '/' + ViewV + ViewN + SubS + SubN;
-
-
-			BOOL bWorking3 = dicfinder.FindFile(vsPath);
-			if (!bWorking3)
-				CreateDirectory(vsPath, NULL);
-			CString FName, Extension, FnameM, index, FnameO;
-
-			AfxExtractSubString(FName, _fileName2, 0, '.');
-			AfxExtractSubString(Extension, _fileName2, 1, '.');
-			index.Format(_T("%d"), i);
-
-			CString Redirection;
-
-			FnameO = m_DrectPath + '/' + DirName + '/' + _fileName2;
-			FnameM = m_DrectPath + '/' + overlay + '/' + ViewV + ViewN + SubS + SubN + '/' + FName + "_(" + index + ")." + Extension;
-
-			CopyFile(FnameO, FnameM, NULL);
-
-			debugMsg.Format(_T("FnameO : %s\n"), FnameO);
-			OutputDebugString(debugMsg);
-			debugMsg.Format(_T("FnameM : %s\n"), FnameM);
-			OutputDebugString(debugMsg);
+			fileName = finder.GetFileTitle();
+			DirList[ListCount] = fileName;
+			ListCount++;
 		}
+
+
+		for (int i = 0; i < ListCount; i++)
+		{
+			DirName = DirList[i];
+
+			BOOL bWorking2 = finder.FindFile(m_DrectPath + '/' + DirName + exe);
+			while (bWorking2) {
+				bWorking2 = finder.FindNextFile();
+				CString _fileName2 = finder.GetFileName();
+				CString overlay;
+
+				if (_fileName2.GetLength() < 5) continue;
+				if (_fileName2 == _T("Thumbs.db")) continue;
+
+				CString View, Sub, ViewV, ViewN, SubS, SubN;
+				CString Ov;
+
+				AfxExtractSubString(View, _fileName2, 0, '_');
+				AfxExtractSubString(Sub, _fileName2, 1, '_');
+				AfxExtractSubString(Ov, _fileName2, 4, '_');
+				AfxExtractSubString(Ov, Ov, 0, '.');
+
+				ViewV = View[0];
+				ViewN = View[7];
+				SubS = Sub[0];
+				SubN = Sub[6];
+
+				if (Ov == "Overlay")
+					overlay = _T("overlay");
+				else
+					overlay = _T("original");
+
+				CString vsPath = m_DrectPath + '/' + overlay + '/' + ViewV + ViewN + SubS + SubN;
+
+
+				BOOL bWorking3 = dicfinder.FindFile(vsPath);
+				if (!bWorking3)
+					CreateDirectory(vsPath, NULL);
+				CString FName, Extension, FnameM, index, FnameO;
+
+				AfxExtractSubString(FName, _fileName2, 0, '.');
+				AfxExtractSubString(Extension, _fileName2, 1, '.');
+				index.Format(_T("%d"), i);
+
+				CString Redirection;
+
+				FnameO = m_DrectPath + '/' + DirName + '/' + _fileName2;
+				FnameM = m_DrectPath + '/' + overlay + '/' + ViewV + ViewN + SubS + SubN + '/' + FName + "_(" + index + ")." + Extension;
+
+				CopyFile(FnameO, FnameM, NULL);
+			}
+		}
+		MessageBox(_T("success!!"), _T("alert"), NULL);
 	}
-	MessageBox(_T("success!!"), _T("alert"), NULL);
 }
 
 BOOL CSortingDlg::PreTranslateMessage(MSG* pMsg)
@@ -349,7 +345,7 @@ BOOL CSortingDlg::PreTranslateMessage(MSG* pMsg)
 		if (pMsg->wParam == VK_RETURN)
 		{
 			UpdateData(true);
-			FileListUp(m_DrectPath);
+			fileready = FileListUp(m_DrectPath);
 			return TRUE;
 		}
 	}
